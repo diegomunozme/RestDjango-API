@@ -3,48 +3,83 @@
 <head>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <title>Stock Visualizer</title>
+    <style>
+        #stock-info {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .stock-card {
+            flex: 1 1 20%;
+            box-sizing: border-box;
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            text-align: center;
+            font-size: 14px;
+        }
+        .positive {
+            background-color: #e0ffe0; /* light green */
+        }
+        .negative {
+            background-color: #ffe0e0; /* light red */
+        }
+        h2 {
+            font-size: 18px;
+        }
+        h3 {
+            font-size: 14px;
+            margin: 5px 0;
+        }
+    </style>
 </head>
 
 <body>
 <h2>Interactive Stock Visualizer</h2>
 <br>
 
-<label for="ticker-input">Enter Symbol:</label>
+<label for="ticker-input">Enter Symbols (comma separated):</label>
 <input type="text" id="ticker-input">
 <input type="button" value="submit" id="submit-btn">
 <br>
-
-<div id="stock-info">
-    <h1 id="current-price"></h1>
-    <h1 id="previous-close"></h1>
-    <h1 id="latest-trading-day"></h1>
+<div>
+    <div id="stock-info"></div>
 </div>
 <br>
 
 <script>
+    function displayStockData(data) {
+        $('#stock-info').empty();
+        data.forEach(stock => {
+            const isPositive = parseFloat(stock.price) > parseFloat(stock.previous_close);
+            const cardClass = isPositive ? 'positive' : 'negative';
+            $('#stock-info').append(`
+                <div class="stock-card ${cardClass}">
+                    <h3>Symbol: ${stock.symbol}</h3>
+                    <h3>Current Price: $${stock.price}</h3>
+                    <h3>Previous Close: $${stock.previous_close}</h3>
+                    <h3>Latest Trading Day: ${stock.latest_trading_day}</h3>
+                </div>
+            `);
+        });
+    }
+
     $(document).ready(function(){
-        // Right after the page is loaded, we get the stock data (default to AAPL) from the Django backend (the 'get_stock_data' function) for plotting
         $.ajax({
             type: "GET",
             url: "/get_stock_data/AAPL/",
             success: function (res, status) {
-                $('#current-price').text(`Current Price: $${res['price']}`);
-                $('#previous-close').text(`Previous Close: $${res['previous_close']}`);
-                $('#latest-trading-day').text(`Latest Trading Day: ${res['latest_trading_day']}`);
+                displayStockData([res]);
             }
         });
     });
 
     $('#submit-btn').click(function() {
-        // when the user specifies a new ticker, we call the Django backend (the 'get_stock_data' function) to get the stock data and refresh the displayed values
-        var tickerText = $('#ticker-input').val();
+        var tickerText = $('#ticker-input').val().replace(/\s+/g, '');
         $.ajax({
             type: "GET",
-            url: `/get_stock_data/${tickerText}/`,
+            url: `/get_multiple_stock_data/${tickerText}/`,
             success: function (res, status) {
-                $('#current-price').text(`Current Price: $${res['price']}`);
-                $('#previous-close').text(`Previous Close: $${res['previous_close']}`);
-                $('#latest-trading-day').text(`Latest Trading Day: ${res['latest_trading_day']}`);
+                displayStockData(res);
             }
         });
     });
@@ -52,4 +87,3 @@
 
 </body>
 </html>
-
