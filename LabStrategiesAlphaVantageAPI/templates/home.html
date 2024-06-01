@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>Stock Visualizer</title>
+</head>
+
+<body>
+<h2>Interactive Stock Visualizer</h2>
+<br>
+
+<label for="ticker-input">Enter Symbol:</label>
+<input type="text" id="ticker-input">
+<input type="button" value="submit" id="submit-btn">
+<br>
+
+<div id="stock-info">
+    <h1 id="current-price"></h1>
+    <h1 id="previous-close"></h1>
+    <h1 id="latest-trading-day"></h1>
+</div>
+<br>
+
+
+<script>
+   $(document).ready(function(){
+    // Right after the page is loaded, we get the stock data (default to AAPL) from the Django backend (the 'get_stock_data' function) for plotting
+    $.ajax({
+          type: "POST",
+          url: "/get_stock_data/",
+          data: {
+             'ticker': 'AAPL',
+          },
+          success: function (res, status) {
+            $('#current-price').text(`Current Price: $${res['price']}`);
+            $('#previous-close').text(`Previous Close: $${res['previous_close']}`);
+          $('#latest-trading-day').text(`Latest Trading Day: ${res['latest-trading-day']}`)
+          }
+    });
+});
+
+$('#submit-btn').click(function() {
+    // when the user specifies a new ticker, we call the Django backend (the 'get_stock_data' function) to get the stock data and refresh the displayed values
+    var tickerText = $('#ticker-input').val();
+    $.ajax({
+          type: "POST",
+          url: "/get_stock_data/",
+          data: {
+             'ticker': tickerText,
+          },
+          success: function (res, status) {
+latest_trading_day
+            $('#latest-trading-day').text(`Latest Trading Day: $${res['latest_trading_day']}`);
+            $('#current-price').text(`Current Price: $${res['price']}`);
+            $('#previous-close').text(`Previous Close: $${res['previous_close']}`);
+          }
+    });
+});
+ 
+</script>
+
+</body>
+</html>
