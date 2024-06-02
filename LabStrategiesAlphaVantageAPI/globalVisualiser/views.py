@@ -18,7 +18,7 @@ def home(request):
 @api_view(['GET'])
 def get_stock_prices(request):
     ids = request.GET.get('ids', '')
-    tickers = ids.split(',')
+    tickers = set(ids.split(','))  # Use a set to remove duplicates
     stock_data = []
 
     for ticker in tickers:
@@ -61,39 +61,46 @@ def get_stock_prices(request):
 
 @api_view(['GET'])
 def get_stock_price(request, ticker):
-    ticker = ticker.strip().upper()
-    latest_trading_day = datetime.today().date()
-    existing_data = StockData.objects.filter(symbol=ticker, latest_trading_day=latest_trading_day).first()
+    try:
+        ticker = ticker.strip().upper()
+        if not ticker.isalnum():  # Check if the ticker is alphanumeric
+            return Response({"error": "Invalid stock symbol"}, status=400)
 
-    if existing_data:
-        stock_data = {
-            "symbol": existing_data.symbol,
-            "price": existing_data.price,
-            "change": existing_data.change,
-            "change_percent": existing_data.change_percent,
-            "latest_trading_day": existing_data.latest_trading_day
-        }
-    else:
-        quote_url = f'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={ticker}&apikey={APIKEY}'
-        quote_data = requests.get(quote_url).json().get('Global Quote', {})
-        if quote_data:
-            price = quote_data.get('05. price')
-            latest_trading_day = datetime.strptime(quote_data['07. latest trading day'], '%Y-%m-%d').date()
+        latest_trading_day = datetime.today().date()
+        existing_data = StockData.objects.filter(symbol=ticker, latest_trading_day=latest_trading_day).first()
+
+        if existing_data:
             stock_data = {
-                "symbol": quote_data['01. symbol'],
-                "price": price,
-                "change": quote_data['09. change'],
-                "change_percent": quote_data['10. change percent'],
-                "latest_trading_day": latest_trading_day
+                "symbol": existing_data.symbol,
+                "price": existing_data.price,
+                "change": existing_data.change,
+                "change_percent": existing_data.change_percent,
+                "latest_trading_day": existing_data.latest_trading_day
             }
-            StockData.objects.create(
-                symbol=quote_data['01. symbol'],
-                price=price,
-                change=quote_data['09. change'],
-                change_percent=quote_data['10. change percent'],
-                latest_trading_day=latest_trading_day,
-            )
         else:
-            return Response({"error": "Stock data not found"}, status=404)
+            quote_url = f'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={ticker}&apikey={APIKEY}'
+            quote_data = requests.get(quote_url).json().get('Global Quote', {})
+            if quote_data:
+                price = quote_data.get('05. price')
+                latest_trading_day = datetime.strptime(quote_data['07. latest trading day'], '%Y-%m-%d').date()
+                stock_data = {
+                    "symbol": quote_data['01. symbol'],
+                    "price": price,
+                    "change": quote_data['09. change'],
+                    "change_percent": quote_data['10. change percent'],
+                    "latest_trading_day": latest_trading_day
+                }
+                # adding the data to the database
+                StockData.objects.create(
+                    symbol=quote_data['01. symbol'],
+                    price=price,
+                    change=quote_data['09. change'],
+                    change_percent=quote_data['10. change percent'],
+                    latest_trading_day=latest_trading_day,
+                )
+            else:
+                return Response({"error": "Stock data not found"}, status=404)
 
-    return Response(stock_data)
+        return Response(stock_data)
+    except Exception as e:
+        return Response({"error": "Internal server error"}, status=500)

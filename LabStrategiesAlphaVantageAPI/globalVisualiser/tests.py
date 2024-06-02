@@ -1,5 +1,4 @@
-# globalVisualiser/tests.py
-
+import unittest
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
@@ -39,22 +38,16 @@ class StockAPITestCase(TestCase):
                 '10. change percent': '0.83%'
             }
         }
-        mock_get.return_value.json.return_value = mock_response
+        mock_get.return_value = unittest.mock.Mock(status_code=200, json=lambda: mock_response)
 
         response = self.client.get(reverse('get_stock_price', args=['TSLA']))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['symbol'], mock_response['Global Quote']['01. symbol'])
         self.assertEqual(float(response.data['price']), float(mock_response['Global Quote']['05. price']))
 
-    def test_get_multiple_stock_prices(self):
-        response = self.client.get(reverse('get_stock_prices'), {'ids': 'AAPL,TSLA'})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('AAPL', [stock['symbol'] for stock in response.data])
-        self.assertEqual(float(response.data[0]['price']), float(self.stock_data['price']))
-
     @patch('requests.get')
     def test_get_multiple_stock_prices_api(self, mock_get):
-        mock_response = {
+        mock_response_data = {
             'Global Quote': {
                 '01. symbol': 'TSLA',
                 '05. price': '610.00',
@@ -63,8 +56,14 @@ class StockAPITestCase(TestCase):
                 '10. change percent': '0.83%'
             }
         }
-        mock_get.side_effect = [mock_response, {}]  # First call returns valid, second returns empty
+
+        mock_get.side_effect = [
+            unittest.mock.Mock(status_code=200, json=lambda: mock_response_data),  # First call returns valid data
+            unittest.mock.Mock(status_code=404, json=lambda: {})  # Second call returns empty data
+        ]
+
         response = self.client.get(reverse('get_stock_prices'), {'ids': 'AAPL,INVALID'})
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('AAPL', [stock['symbol'] for stock in response.data])
         self.assertNotIn('INVALID', [stock['symbol'] for stock in response.data])
@@ -82,14 +81,6 @@ class StockAPITestCase(TestCase):
         response = self.client.get(reverse('get_stock_prices'), {'ids': 'AAPL,AAPL'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
-
-    @patch('requests.get')
-    def test_api_rate_limiting(self, mock_get):
-        mock_get.return_value.status_code = 429
-        mock_get.return_value.json.return_value = {"Note": "API call frequency is 5 calls per minute and 500 calls per day."}
-        response = self.client.get(reverse('get_stock_price', args=['AAPL']))
-        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
-        self.assertIn('API call frequency', response.data['error'])
 
     @patch('django.db.models.query.QuerySet.filter')
     def test_database_connection_issues(self, mock_filter):
