@@ -23,7 +23,7 @@ import globalVisualiser.views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("", globalVisualiser.views.home),
-        path('get_multiple_stock_data/<str:tickers>/', globalVisualiser.views.get_multiple_stock_data, name='get_multiple_stock_data'),
-    path('get_stock_data/<str:ticker>/', globalVisualiser.views.get_stock_data, name='get_stock_data'),
-    path('get_stock_data/', globalVisualiser.views.get_stock_data),
+    path('stocks/', globalVisualiser.views.get_stock_prices, name='get_stock_prices'),
+    path('stocks/<str:ticker>/', globalVisualiser.views.get_stock_price, name='get_stock_price'),
+
 ]

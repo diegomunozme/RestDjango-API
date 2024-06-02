@@ -2,7 +2,7 @@
 <html>
 <head>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <title>Stock Visualizer</title>
+    <title>LAB Strategies Take Home Assignment</title>
     <style>
         #stock-info {
             display: flex;
@@ -34,7 +34,7 @@
 </head>
 
 <body>
-<h2>Interactive Stock Visualizer</h2>
+<h2> LAB Take Home Assignment</h2>
 <br>
 
 <label for="ticker-input">Enter Symbols (comma separated):</label>
@@ -47,8 +47,9 @@
 <br>
 
 <script>
-    function displayStockData(data) {
-        $('#stock-info').empty();
+function displayStockData(data) {
+    $('#stock-info').empty();
+    if (Array.isArray(data)) {
         data.forEach(stock => {
             const isPositive = parseFloat(stock.price) > parseFloat(stock.previous_close);
             const cardClass = isPositive ? 'positive' : 'negative';
@@ -56,33 +57,55 @@
                 <div class="stock-card ${cardClass}">
                     <h3>Symbol: ${stock.symbol}</h3>
                     <h3>Current Price: $${stock.price}</h3>
+                    <h3>Open: $${stock.open}</h3>
+                    <h3>High: $${stock.high}</h3>
+                    <h3>Low: $${stock.low}</h3>
+                    <h3>Volume: ${stock.volume}</h3>
                     <h3>Previous Close: $${stock.previous_close}</h3>
                     <h3>Latest Trading Day: ${stock.latest_trading_day}</h3>
+                    <h3>Change: ${stock.change}</h3>
+                    <h3>Change Percent: ${stock.change_percent}</h3>
                 </div>
             `);
         });
+    } else {
+        displayErrorMessage(data.error);
+    }
+}
+
+function displayErrorMessage(message) {
+    $('#stock-info').empty();
+    $('#stock-info').append(`
+        <div class="stock-card negative">
+            <h3>${message}</h3>
+        </div>
+    `);
+}
+
+$('#submit-btn').click(function() {
+    var tickerText = $('#ticker-input').val().replace(/\s+/g, '');
+    var url;
+    if (tickerText.includes(',')) {
+        url = `/stocks/?ids=${tickerText}`;
+    } else {
+        url = `/stocks/${tickerText}/`;
     }
 
-    $(document).ready(function(){
-        $.ajax({
-            type: "GET",
-            url: "/get_stock_data/AAPL/",
-            success: function (res, status) {
+    $.ajax({
+        type: "GET",
+        url: url,
+        success: function (res, status) {
+            if (url.includes('ids=')) {
+                displayStockData(res);
+            } else {
                 displayStockData([res]);
             }
-        });
+        },
+        error: function (xhr, status, error) {
+            displayErrorMessage(`Stock data for ${tickerText} not found.`);
+        }
     });
-
-    $('#submit-btn').click(function() {
-        var tickerText = $('#ticker-input').val().replace(/\s+/g, '');
-        $.ajax({
-            type: "GET",
-            url: `/get_multiple_stock_data/${tickerText}/`,
-            success: function (res, status) {
-                displayStockData(res);
-            }
-        });
-    });
+});
 </script>
 
 </body>
