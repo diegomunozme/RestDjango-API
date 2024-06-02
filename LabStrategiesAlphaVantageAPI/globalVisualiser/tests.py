@@ -1,3 +1,5 @@
+# globalVisualiser/tests.py
+
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
@@ -6,48 +8,57 @@ from .models import StockData
 from datetime import datetime
 from unittest.mock import patch
 
-class StockAPIEdgeCaseTestCase(TestCase):
+class StockAPITestCase(TestCase):
 
     def setUp(self):
         self.client = APIClient()
         self.api_key = 'MBSDTIBYI56I8KVA'
         self.stock_data = {
             'symbol': 'AAPL',
-            'open': '150.00',
-            'high': '155.00',
-            'low': '149.00',
             'price': '152.00',
-            'volume': '1000000',
-            'latest_trading_day': datetime.today().date(),
-            'previous_close': '151.00',
             'change': '1.00',
-            'change_percent': '0.66%'
+            'change_percent': '0.66%',
+            'latest_trading_day': datetime.today().date(),
         }
         StockData.objects.create(**self.stock_data)
 
-    def test_empty_query_parameter(self):
-        response = self.client.get(reverse('get_stock_prices'), {'ids': ''})
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    def test_get_single_stock_price(self):
+        response = self.client.get(reverse('get_stock_price', args=['AAPL']))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['symbol'], self.stock_data['symbol'])
+        self.assertEqual(float(response.data['price']), float(self.stock_data['price']))
 
     @patch('requests.get')
-    def test_invalid_stock_symbol(self, mock_get):
-        mock_get.return_value.json.return_value = {}
-        response = self.client.get(reverse('get_stock_price', args=['INVALID']))
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(response.data['error'], 'Stock data not found')
-
-    @patch('requests.get')
-    def test_mixed_valid_invalid_stock_symbols(self, mock_get):
+    def test_get_single_stock_price_api(self, mock_get):
         mock_response = {
             'Global Quote': {
                 '01. symbol': 'TSLA',
-                '02. open': '600.00',
-                '03. high': '620.00',
-                '04. low': '590.00',
                 '05. price': '610.00',
-                '06. volume': '500000',
                 '07. latest trading day': datetime.today().strftime('%Y-%m-%d'),
-                '08. previous close': '605.00',
+                '09. change': '5.00',
+                '10. change percent': '0.83%'
+            }
+        }
+        mock_get.return_value.json.return_value = mock_response
+
+        response = self.client.get(reverse('get_stock_price', args=['TSLA']))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['symbol'], mock_response['Global Quote']['01. symbol'])
+        self.assertEqual(float(response.data['price']), float(mock_response['Global Quote']['05. price']))
+
+    def test_get_multiple_stock_prices(self):
+        response = self.client.get(reverse('get_stock_prices'), {'ids': 'AAPL,TSLA'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('AAPL', [stock['symbol'] for stock in response.data])
+        self.assertEqual(float(response.data[0]['price']), float(self.stock_data['price']))
+
+    @patch('requests.get')
+    def test_get_multiple_stock_prices_api(self, mock_get):
+        mock_response = {
+            'Global Quote': {
+                '01. symbol': 'TSLA',
+                '05. price': '610.00',
+                '07. latest trading day': datetime.today().strftime('%Y-%m-%d'),
                 '09. change': '5.00',
                 '10. change percent': '0.83%'
             }

@@ -51,18 +51,12 @@ function displayStockData(data) {
     $('#stock-info').empty();
     if (Array.isArray(data)) {
         data.forEach(stock => {
-            const isPositive = parseFloat(stock.price) > parseFloat(stock.previous_close);
+            const isPositive = stock.change > 0;
             const cardClass = isPositive ? 'positive' : 'negative';
             $('#stock-info').append(`
                 <div class="stock-card ${cardClass}">
                     <h3>Symbol: ${stock.symbol}</h3>
                     <h3>Current Price: $${stock.price}</h3>
-                    <h3>Open: $${stock.open}</h3>
-                    <h3>High: $${stock.high}</h3>
-                    <h3>Low: $${stock.low}</h3>
-                    <h3>Volume: ${stock.volume}</h3>
-                    <h3>Previous Close: $${stock.previous_close}</h3>
-                    <h3>Latest Trading Day: ${stock.latest_trading_day}</h3>
                     <h3>Change: ${stock.change}</h3>
                     <h3>Change Percent: ${stock.change_percent}</h3>
                 </div>
