@@ -36,19 +36,20 @@ it is an industry standard for python database design, and maintenance, but also
 more lightweight API development packages lack the community support and scalability I get in a Django model. 
 
 So, while its development may be a little more involved on the front, Django provides the scalability necessary to 
-make a production-ready application. Such as SQL table mapping, ORM models, and template files for 
+make a production-ready application. Such as SQL table mapping, and template files for 
 multiple client side apps all in a single project.
 
 ## Folder Structure. 
 The django project lives in the same folder as the python virtual enviornment 'LabStrategies'. 
 This is so python versions for additional packages such as requests maintain cohesion with the django version.
-Similar to docker for deployed applications on the web. 
+I also used a home.html file to create a simple front end as I comfortable with API calls using js. I would have preferred using VUEjs but
+that would have expanded the scope of the project, home.html was good enough for a simple front end. 
 
 
 #############
 # Models.py #
 #############
-In a Django application, the models.py file serves as the Object Relational Mapper (ORM), where we define our
+In a Django application, the models.py file serves as the source of truth, where we define our
 database models and their relationships. In this project, the StockData class is the sole model, designed to 
 store stock price information with fields for the ticker symbol, price, price change, percentage change, and the latest 
 trading day. The unique_together constraint ensures each stock entry is unique for each trading day, preventing data redundancy. 
@@ -56,8 +57,6 @@ To expand this model, additional classes could be introduced, such as a NewsData
 the tickers and an EarningsReport class for previous earnings reports, using primary and foreign key relationships
 to link these tables. This would allow for more complex data structures, supporting strategies that rely on high
 volatility during earnings reports, such as long straddles with minimal days to expiration (DTE).
-
-Also, I want to minimize duplicates and use the sqlLite datbase that comes in a django project so I am only storing 1 set of ticker symbol and price per trading day. So we will only get the price of a certain time per day, may be open, or close depending on when you run the application. This is not ideal for actually making money so this is something that will need to change one this project is shipped to production.
 
 #############
 # views.py #
