@@ -1,4 +1,6 @@
-## Project Setup
+##################
+## Project Setup #
+##################
 1. Clone the repository:
 
 2. Navigate to the project directory:
@@ -20,14 +22,20 @@
 
 Enjoy!
 
-<h1>Lab Strategies Take Home Assesment</h1>
+########################################
+## LAB Strategies Take Home Assignment #
+########################################
 
 
-#### Objective: Develop a REST API that:
+# Objective: Develop a REST API that:
     • Retrieves a list of stock prices based on a list of stock IDs.
     • Retrieves an individual stock price based on its ID.
 
-## Justification for development method. 
+
+
+###############
+# My Solution #
+###############
 
 I decided to go with Django as the framework of choice not only because 
 it is an industry standard for python database design, and maintenance, but also becuase other 
@@ -37,7 +45,9 @@ So, while its development may be a little more involved on the front, Django pro
 make a production-ready application. Such as SQL table mapping, and template files for 
 multiple client side apps all in a single project.
 
-## Folder Structure. 
+######################
+## Folder Structure ##
+###################### 
 The django project lives in the same folder as the python virtual enviornment 'LabStrategies'. 
 This is so python versions for additional packages such as requests maintain cohesion with the django version.
 I also used a home.html file to create a simple front end as I comfortable with API calls using js. I would have preferred using VUEjs but
