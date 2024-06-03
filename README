@@ -34,6 +34,8 @@ the tickers and an EarningsReport class for previous earnings reports, using pri
 to link these tables. This would allow for more complex data structures, supporting strategies that rely on high
 volatility during earnings reports, such as long straddles with minimal days to expiration (DTE).
 
+Also, I want to minimize duplicates and use the sqlLite datbase that comes in a django project so I am only storing 1 set of ticker symbol and price per trading day. So we will only get the price of a certain time per day, may be open, or close depending on when you run the application. This is not ideal for actually making money so this is something that will need to change one this project is shipped to production.
+
 #############
 # views.py #
 ############

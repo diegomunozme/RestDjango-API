@@ -8,7 +8,8 @@ class StockData(models.Model):
     latest_trading_day = models.DateField()
 
     class Meta:
-        unique_together = ('symbol', 'latest_trading_day')  # Enforce unique combination
+        # Enforce unique combination between date and ticker symbol
+        unique_together = ('symbol', 'latest_trading_day')  
 
     def __str__(self):
         return self.symbol
