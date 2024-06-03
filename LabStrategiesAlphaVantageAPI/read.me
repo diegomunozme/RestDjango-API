@@ -1,0 +1,49 @@
+
+## Lab Strategies Take Home Assesment
+
+
+Objective: Develop a REST API that:
+• Retrieves a list of stock prices based on a list of stock IDs.
+• Retrieves an individual stock price based on its ID.
+
+Justification for development method. 
+
+I decided to go with Django as the framework of choice not only because 
+it is an industry standard for python database design, and maintenance, but also becuase other 
+more lightweight API development packages lack the community support and scalability I get in a Django model. 
+
+So, while its development may be a little more involved on the front, Django provides the scalability necessary to 
+make a production-ready application. Such as SQL table mapping, ORM models, and template files for 
+multiple client side apps all in a single project.
+
+## Folder Structure. 
+The django project lives in the same folder as the python virtual enviornment 'LabStrategies'. 
+This is so python versions for additional packages such as requests maintain cohesion with the django version.
+Similar to docker for deployed applications on the web. 
+
+
+#############
+# Models.py #
+#############
+
+In a django application, the models.py file is the ORM, or the Object Relational Mapper. This is the file where we 
+can create sql table relationships. In the case of this project, all we need is a single class StockData, since we are 
+only pulling price information in. A way we could expand this into multiple classes is if, lets say we are interested in a 
+strategy that earns value based off of high volatility during earnings reports (long straddle in this case with minimal DTE).
+We would create a second or third class that would then use primary and foreign key relationships to hold news data for the tickers 
+and a earnings report class where we would store previous earnings reports.  
+
+#############
+# views.py #
+############
+This is the class that interacts with the backend and pulls the data 
+
+
+###########
+# urls.py #
+###########
+Here is where we design the url layout for the django APIs. 
+
+I chose to use a template for this project after seeing an example online of using the home.html 
+I have a fair amount of experience developing front end applications from my current employer and I wanted to 
+expand this project to include a simple front end. 

@@ -1,5 +1,4 @@
-# globalVisualiser/views.py
-
+import logging
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import StockData
@@ -11,6 +10,7 @@ from datetime import datetime
 from django.shortcuts import render
 
 APIKEY = 'MBSDTIBYI56I8KVA'
+logger = logging.getLogger(__name__)
 
 def home(request):
     return render(request, 'home.html', {})
@@ -36,7 +36,11 @@ def get_stock_prices(request):
             })
         else:
             quote_url = f'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={ticker}&apikey={APIKEY}'
-            quote_data = requests.get(quote_url).json().get('Global Quote', {})
+            response = requests.get(quote_url)
+            if response.status_code != 200:
+                logger.error(f"Failed to fetch data for {ticker} from Alpha Vantage. Status code: {response.status_code}")
+                continue
+            quote_data = response.json().get('Global Quote', {})
             if quote_data:
                 price = quote_data.get('05. price')
                 latest_trading_day = datetime.strptime(quote_data['07. latest trading day'], '%Y-%m-%d').date()
@@ -55,7 +59,7 @@ def get_stock_prices(request):
                     latest_trading_day=latest_trading_day,
                 )
             else:
-                return Response({"error": f"Stock data for {ticker} not found"}, status=404)
+                logger.error(f"No data found for {ticker}")
 
     return Response(stock_data)
 
@@ -79,7 +83,11 @@ def get_stock_price(request, ticker):
             }
         else:
             quote_url = f'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={ticker}&apikey={APIKEY}'
-            quote_data = requests.get(quote_url).json().get('Global Quote', {})
+            response = requests.get(quote_url)
+            if response.status_code != 200:
+                logger.error(f"Failed to fetch data for {ticker} from Alpha Vantage. Status code: {response.status_code}")
+                return Response({"error": "Failed to fetch data from external API"}, status=500)
+            quote_data = response.json().get('Global Quote', {})
             if quote_data:
                 price = quote_data.get('05. price')
                 latest_trading_day = datetime.strptime(quote_data['07. latest trading day'], '%Y-%m-%d').date()
@@ -103,4 +111,5 @@ def get_stock_price(request, ticker):
 
         return Response(stock_data)
     except Exception as e:
+        logger.error(f"Internal server error: {e}")
         return Response({"error": "Internal server error"}, status=500)
