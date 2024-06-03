@@ -8,24 +8,15 @@ from datetime import datetime
 APIKEY = 'MBSDTIBYI56I8KVA'
 
 def home(request):
-    '''
-    Renders the home.html file for front end use
-    '''
     return render(request, 'home.html', {})
 
 def validate_ticker(ticker):
-    '''
-    
-    '''
     ticker = ticker.strip().upper()
     if not ticker.isalnum() or len(ticker) > 10:
         return None
     return ticker
 
-def fetch_stock_data_from_alphaVantage(ticker):
-    '''
-    Helper function that pulls the stock data from alphaVantage live API.
-    '''
+def fetch_stock_data_from_api(ticker):
     quote_url = f'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={ticker}&apikey={APIKEY}'
     response = requests.get(quote_url)
     if response.status_code != 200:
@@ -43,13 +34,15 @@ def fetch_stock_data_from_alphaVantage(ticker):
             "change_percent": quote_data['10. change percent'],
             "latest_trading_day": latest_trading_day.strftime('%Y-%m-%d')
         }
-        # Add to database, wll be a new row
-        StockData.objects.create(
+        # Add to database
+        StockData.objects.get_or_create(
             symbol=quote_data['01. symbol'],
-            price=price,
-            change=quote_data['09. change'],
-            change_percent=quote_data['10. change percent'],
             latest_trading_day=latest_trading_day,
+            defaults={
+                'price': price,
+                'change': quote_data['09. change'],
+                'change_percent': quote_data['10. change percent']
+            }
         )
         return stock_data, None
     return None, "Stock data not found"
@@ -83,7 +76,7 @@ def get_stock_prices(request):
         if existing_data:
             stock_data.append(format_stock_data(existing_data))
         else:
-            api_data, error = fetch_stock_data_from_alphaVantage(ticker)
+            api_data, error = fetch_stock_data_from_api(ticker)
             if api_data:
                 stock_data.append(api_data)
 
@@ -105,7 +98,7 @@ def get_stock_price(request, ticker):
         if existing_data:
             stock_data = format_stock_data(existing_data)
         else:
-            stock_data, error = fetch_stock_data_from_alphaVantage(ticker)
+            stock_data, error = fetch_stock_data_from_api(ticker)
             if not stock_data:
                 return Response({"error": error}, status=404)
 

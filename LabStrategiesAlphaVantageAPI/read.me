@@ -1,12 +1,12 @@
 
-## Lab Strategies Take Home Assesment
+# Lab Strategies Take Home Assesment
 
 
-Objective: Develop a REST API that:
-• Retrieves a list of stock prices based on a list of stock IDs.
-• Retrieves an individual stock price based on its ID.
+#### Objective: Develop a REST API that:
+    • Retrieves a list of stock prices based on a list of stock IDs.
+    • Retrieves an individual stock price based on its ID.
 
-Justification for development method. 
+## Justification for development method. 
 
 I decided to go with Django as the framework of choice not only because 
 it is an industry standard for python database design, and maintenance, but also becuase other 
@@ -25,25 +25,32 @@ Similar to docker for deployed applications on the web.
 #############
 # Models.py #
 #############
-
-In a django application, the models.py file is the ORM, or the Object Relational Mapper. This is the file where we 
-can create sql table relationships. In the case of this project, all we need is a single class StockData, since we are 
-only pulling price information in. A way we could expand this into multiple classes is if, lets say we are interested in a 
-strategy that earns value based off of high volatility during earnings reports (long straddle in this case with minimal DTE).
-We would create a second or third class that would then use primary and foreign key relationships to hold news data for the tickers 
-and a earnings report class where we would store previous earnings reports.  
+In a Django application, the models.py file serves as the Object Relational Mapper (ORM), where we define our
+database models and their relationships. In this project, the StockData class is the sole model, designed to 
+store stock price information with fields for the ticker symbol, price, price change, percentage change, and the latest 
+trading day. The unique_together constraint ensures each stock entry is unique for each trading day, preventing data redundancy. 
+To expand this model, additional classes could be introduced, such as a NewsData class for storing news related to
+the tickers and an EarningsReport class for previous earnings reports, using primary and foreign key relationships
+to link these tables. This would allow for more complex data structures, supporting strategies that rely on high
+volatility during earnings reports, such as long straddles with minimal days to expiration (DTE).
 
 #############
 # views.py #
 ############
-This is the class that interacts with the backend and pulls the data 
-
+The views.py file implements a REST API in Django for fetching and displaying stock data using the Alpha Vantage API. 
+It includes two main endpoints: one for retrieving multiple stock prices (get_stock_prices) and another for a single
+stock price (get_stock_price). Stock tickers are validated for correctness, and data is 
+fetched from the Alpha Vantage API if not found in the local database. Helper functions are used
+to validate tickers, fetch and format data, ensuring code clarity and reducing redundancy. This design ensures efficient data retrieval
+and storage, maintaining consistent and reliable API responses.
 
 ###########
 # urls.py #
 ###########
-Here is where we design the url layout for the django APIs. 
-
-I chose to use a template for this project after seeing an example online of using the home.html 
-I have a fair amount of experience developing front end applications from my current employer and I wanted to 
-expand this project to include a simple front end. 
+This file defines the routing for the REST API endpoints in the Django application. It includes a route for the 
+Django admin interface (admin/) for administrative tasks, a home route ("") that renders the homepage, and two
+key REST API endpoints: stocks/ for retrieving prices of multiple stock tickers via the get_stock_prices view, and
+ stocks/<str:ticker>/ for fetching the price of a single stock ticker via the get_stock_price view.
+These routes are designed to facilitate clear and efficient API interactions, allowing users
+to query multiple stocks at once or get detailed information for a single stock, adhering to REST principles for
+resource-based URL structure.
