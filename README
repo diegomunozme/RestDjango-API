@@ -1,3 +1,22 @@
+## Project Setup
+1. Clone the repository:
+
+2. Navigate to the project directory:
+
+3. Create a new virtual environment:
+
+4. Activate the virtual environment:
+- For Windows:
+  ```
+  myenv\Scripts\activate
+  ```
+- For Unix or Linux:
+  ```
+  source myenv/bin/activate
+  ```
+
+5. Install the required dependencies:
+
 
 # Lab Strategies Take Home Assesment
 
