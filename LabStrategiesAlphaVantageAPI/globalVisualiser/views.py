@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from datetime import datetime
 
-APIKEY = 'MBSDTIBYI56I8KVA'
+APIKEY = 'enter_email_key_here'
 
 def home(request):
     return render(request, 'home.html', {})
